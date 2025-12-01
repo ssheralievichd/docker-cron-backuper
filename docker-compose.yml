@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  pg-backuper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: "unless-stopped"
+
+    environment:
+      DB_NAME: "my_database"
+      DB_HOST: "host.docker.internal" # Use your actual DB host or service name
+      DB_USER: "backup_user"
+      PGPASSWORD: "your_strong_db_password"
+
+      RECIPIENT_EMAIL: "admin@example.com"
+      SMTP_HOST: "smtp.mailprovider.net"
+      SMTP_PORT: "587"
+      SMTP_USER: "sender@example.com"
+      SMTP_PASS: "smtp_secret_key"
+
+    volumes:
+      - ./backups:/tmp/backup/postgresql

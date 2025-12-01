@@ -1,21 +1,30 @@
 FROM ubuntu:latest
 
-# Install cron
 RUN apt-get update
-RUN apt-get install cron
+RUN apt-get install -y --no-install-recommends cron \
+  postgresql-client  \
+  msmtp ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
-# Add crontab file in the cron directory
 ADD crontab /etc/cron.d/simple-cron
 
-# Add shell script and grant execution rights
 ADD script.sh /script.sh
 RUN chmod +x /script.sh
 
-# Give execution rights on the cron job
 RUN chmod 0644 /etc/cron.d/simple-cron
 
-# Create the log file to be able to run tail
 RUN touch /var/log/cron.log
 
-# Run the command on container startup
+RUN echo "account default" > /etc/msmtprc \
+  && echo "host \${SMTP_HOST}" >> /etc/msmtprc \
+  && echo "port \${SMTP_PORT:-587}" >> /etc/msmtprc \
+  && echo "from \${SMTP_USER}" >> /etc/msmtprc \
+  && echo "auth on" >> /etc/msmtprc \
+  && echo "user \${SMTP_USER}" >> /etc/msmtprc \
+  && echo "password \${SMTP_PASS}" >> /etc/msmtprc \
+  && echo "tls on" >> /etc/msmtprc \
+  && echo "tls_starttls on" >> /etc/msmtprc \
+  && echo "logfile /var/log/msmtp.log" >> /etc/msmtprc \
+  && chmod 600 /etc/msmtprc
+
 CMD cron && tail -f /var/log/cron.log
